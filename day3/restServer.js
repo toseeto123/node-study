@@ -3,6 +3,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 const users = {}; // 데이터 저장용
+const board = {};
 
 http.createServer(async (req, res) => {
   try {
@@ -18,6 +19,10 @@ http.createServer(async (req, res) => {
       } else if (req.url === '/users') {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         return res.end(JSON.stringify(users));
+      } else if (req.url == '/board') {
+        const data = await fs.readFile(path.join(__dirname, 'board.html'));
+        res.writeHead(200, {'Content-Type' : 'text/html; charset=utf-8'});
+        return res.end(data);
       }
       // /도 /about도 /users도 아니면
       try {
@@ -33,13 +38,27 @@ http.createServer(async (req, res) => {
         req.on('data', (data) => { //stream
           body += data;
         });
-        // 요청의 body를 다 받은 후 실행됨
+        // 요청의 body를 다 받은 후 실행됨 (readStream)
         return req.on('end', () => {
           console.log('POST 본문(Body):', body);
           const { name } = JSON.parse(body);
           const id = Date.now();
           users[id] = name;
           res.writeHead(201, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('등록 성공');
+        });
+      }
+      if(req.url === '/board/insert') {
+        let body= '';
+        req.on('data', (data)=>{
+          body += data;
+        });
+        return req.on('end',()=>{
+          console.log('POST (body):',body);
+          const { text } = JSON.parse(body);
+          const boardid = Date.now();
+          boards[boardid] = text;
+          res.writeHead(201, {'Content-Type': 'text/plain; charset=utf-8'});
           res.end('등록 성공');
         });
       }

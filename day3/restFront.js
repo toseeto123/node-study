@@ -60,3 +60,26 @@ async function getUser() { // 로딩 시 사용자 가져오는 함수
     }
     e.target.username.value = '';
   });
+  async function getTitle() {
+    try{
+      const res = await axios.get('/board');
+      const posts = res.data;
+      const list = document.getElementById('posts');
+    }catch(err){
+      console.log(err);
+    }
+  }
+  document.getElementById('form2').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const text = e.target.title.value;
+    if (!name) {
+      return alert('제목을 입력하세요.');
+    }
+    try {
+      await axios.post('/board/insert', { text });
+      getTitle();
+    } catch (err) {
+      console.error(err);
+    }
+    e.target.title.value = '';
+  });
