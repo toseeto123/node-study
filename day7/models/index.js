@@ -14,9 +14,10 @@ db.sequelize = sequelize;
 db.User = User;
 db.Comment = Comment;
 
+//initiate를 통해서 sequelize와 연결
 User.initiate(sequelize);
 Comment.initiate(sequelize);
-
+//associate로 관계 설정
 User.associate(db);
 Comment.associate(db);
 
