@@ -5,6 +5,7 @@ const path = require('path');
 const session= require('express-session');
 const nunjucks = require('nunjucks');
 const dotenv = require('dotenv');
+const { sequelize } = require('./models');
 
 //process.env.COOKIE_SECRET이 없음
 dotenv.config(); //process.env 최대한 위에 올려주는것이 좋다.
@@ -19,6 +20,14 @@ nunjucks.configure('views',{
     express : app,
     watch: true,
 });
+
+sequelize.sync({ force: false })
+    .then(()=>{
+        console.log('데이터 베이스 연결 성공');
+    })
+    .catch((err)=>{
+        console.error(err);
+    })
 
 app.use(morgan ('dev'));
 app.use(express.static(path.join(__dirname, 'public')));

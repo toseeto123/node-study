@@ -1,43 +1,33 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
 const Sequelize = require('sequelize');
-const process = require('process');
-const basename = path.basename(__filename);
+const fs = require('fs'); //파일 및 폴더를 읽을 모듈
+const path = require('path');
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const config = require('../config/config')[env];
+
 const db = {};
+const sequelize = new Sequelize(
+  config.database, config.username, config.password, config,
+); //연결만 만들어 놓은것이고 app.js 에서 sync 함수를 호출하여 연결
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+db.sequelize = sequelize;
 
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (
-      file.indexOf('.') !== 0 &&
-      file !== basename &&
-      file.slice(-3) === '.js' &&
-      file.indexOf('.test.js') === -1
-    );
+const basename = path.basename(__filename); //index.js 의미
+
+fs.readdirSync(__dirname) // 현재 폴더의 모든 파일을 조회(model)
+  .filter(file => { // 숨김 파일, index.js, js 확장자가 아닌 파일 필터링
+    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
   })
-  .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+  .forEach(file => { // 해당 파일의 모델 불러와서 init
+    const model = require(path.join(__dirname, file));
+    console.log(file, model.name);
     db[model.name] = model;
-  });
+    model.initiate(sequelize);
+  }); 
 
-Object.keys(db).forEach(modelName => {
+Object.keys(db).forEach(modelName => { // associate 호출 initiate를 다 완료하고나서 associate를 해야되서 분리해서 실행
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
-});
-
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
+});// 자동화로 모델들 전체 불러오기 구간
 
 module.exports = db;
