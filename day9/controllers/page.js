@@ -1,4 +1,4 @@
-const {Post, User } = require('../models');
+const {Post, User, Hashtag} = require('../models');
 
 // 라우터 -> 컨트롤러 호출 -> 서비스 호출 하는 구조(Spring과 유사 라우터 = DispatcherServlet)
 exports.renderProfile = (req, res, next) => {
@@ -26,3 +26,27 @@ exports.renderMain = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.renderHashtag = async (req, res, next) =>{
+    const query = req.query.hashtag;
+    if(!query){
+        return res.redirect('/');
+    }
+    try{
+        const hashtag = await Hashtag.findOne( { where: { title: query }});
+        let posts = [];
+        if(hashtag){
+            posts = await hashtag.getPosts({
+                include: [{ model: User, attributes: ['id','nick']}],
+                order: [['createdAt', 'DESC']] // 최신순 정렬
+            });
+        }
+        res.render('main', {
+            title: `${query} | NodeBird`,
+            twits: posts,
+        })
+    }catch(error){
+        console.error(error);
+        next(error);
+    }
+}
